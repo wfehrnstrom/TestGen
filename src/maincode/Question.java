@@ -17,7 +17,7 @@ package maincode;
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 public class Question {
 	String rawText;
-	String question;
+	public String question;
 	String[] answers;
 	String codeBody;
 	QuestionType type;
@@ -125,6 +125,7 @@ public class Question {
 		}
 		if(index == 0){
 			type = reorderTypes[questionIndex];
+			System.out.println("Question match found.  Modifying question based on immutable approach......");
 		}
 		else if(index == 1){
 			type = mutableTypes[questionIndex];
@@ -135,6 +136,7 @@ public class Question {
 			return null;
 		}
 		System.out.println("Similarity of question to  question type: " + highestPercentage);
+		System.out.println("Type is: " + type);
 		return type;
 	}
 }
