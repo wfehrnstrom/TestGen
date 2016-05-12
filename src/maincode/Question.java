@@ -33,15 +33,15 @@ public class Question {
 	//Within these, structure follows array structure of reorderTypes and mutableTypes.  The keywords are then 
 	//in no particular order
 	//QUESTION KEYWORDS ARE TO BE USED ON THE QUESTION SEGMENT ONLY
-	static final KeywordBooleanTuple questionKeywords[][][] = {{{new KeywordBooleanTuple("What happens"), new KeywordBooleanTuple("which of the following can be used"), new KeywordBooleanTuple("does not compile"), new KeywordBooleanTuple("fixed"), new KeywordBooleanTuple("work as intended")},
-		{new KeywordBooleanTuple("&&"), new KeywordBooleanTuple("||"), new KeywordBooleanTuple("!"), new KeywordBooleanTuple("true"), new KeywordBooleanTuple("false"), new KeywordBooleanTuple("conditional"), new KeywordBooleanTuple("and"), new KeywordBooleanTuple("or")}, 
-		{new KeywordBooleanTuple("purpose")}, 
-		{new KeywordBooleanTuple("replacement"), new KeywordBooleanTuple("is true")}, 
-		{new KeywordBooleanTuple("replacement"), new KeywordBooleanTuple("correctly")}}, 
+	static final String  questionKeywords[][][] = {{{new String ("What happens"), new String ("which of the following"), new String ("does not compile"), new String ("fixed"), new String ("work as intended"), new String ("Can be used")},
+		{new String ("&&"), new String ("||"), new String ("!"), new String ("true"), new String ("false"), new String ("conditional"), new String ("and"), new String ("or")}, 
+		{new String ("purpose")}, 
+		{new String ("replacement"), new String ("is true")}, 
+		{new String ("replacement"), new String ("correctly")}}, 
 		//--------------------------------------------------------------
-		{{new KeywordBooleanTuple("value"), new KeywordBooleanTuple("output"), new KeywordBooleanTuple("what is"), new KeywordBooleanTuple("printed")},
-		{new KeywordBooleanTuple("trace"), new KeywordBooleanTuple("tracing")}, 
-		{new KeywordBooleanTuple("recursion"), new KeywordBooleanTuple("recursive")}}};
+		{{new String ("value"), new String ("output"), new String ("what is"), new String ("printed"), new String ("executes")},
+		{new String ("trace"), new String ("tracing")}, 
+		{new String ("recursion"), new String ("recursive")}}};
 	
 	enum QuestionType {
 		TRACE, CONDITIONAL, PURPOSE, RECURSION, MULTIPLEPOSS, CODEANSWER
@@ -89,7 +89,7 @@ public class Question {
 			//Loop through the general terms that bias towards a certain
 			//algorithm methodology
 			for(int q = 0; q < questionKeywords[i][0].length; q++){
-				if(question.toLowerCase().indexOf(questionKeywords[i][0][q].keyword) != -1){
+				if(question.toLowerCase().indexOf(questionKeywords[i][0][q]) != -1){
 					numberOfGeneralMatches++;
 				}
 			}
@@ -98,7 +98,7 @@ public class Question {
 				int totalQuestionTerms = numOfGeneralTerms;
 				int questionTypeMatches = numberOfGeneralMatches;
 				for(int k = 0; k < questionKeywords[i][j].length; k++){
-					if(question.toLowerCase().indexOf(questionKeywords[i][j][k].keyword) != -1){
+					if(question.toLowerCase().indexOf(questionKeywords[i][j][k]) != -1){
 						questionTypeMatches++;
 					}
 					totalQuestionTerms++;
@@ -112,6 +112,7 @@ public class Question {
 		//Finally, determine which questionType matches the question text
 		//most closely
 		double highestPercentage = 0f;
+		//Default to approach 1
 		int index = 0;
 		int questionIndex = 0;
 		for(int i = 0; i < percentageSimilarities.length; i++){
