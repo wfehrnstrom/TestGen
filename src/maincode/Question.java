@@ -48,6 +48,9 @@ public class Question {
 	//the method randomize will randomize what I, II, and III are too. 
 	static final QuestionType[] reorderTypes = {QuestionType.CONDITIONAL, QuestionType.PURPOSE, QuestionType.MULTIPLEPOSS, QuestionType.CODEANSWER};
 	static final QuestionType[] mutableTypes = {QuestionType.TRACE, QuestionType.RECURSION};
+	static String[] conditionals = {"if", "else if", "while", "for"};
+	static String[] arithmeticOperators = {"==", "!=", "<=", "<", ">=", ">"};
+	static String[] logicalOperators = {"||", "&&"};
 	ArrayList<String> varNames = new ArrayList<String>(Arrays.asList("variable", "var", "x", "y", "z", "unknown", "thing", "a", "b", "c"));
 	ArrayList<String> stringVals = new ArrayList<String>(Arrays.asList("zebra", "automobile", "plane", "train", "horse", "flames", "trees", "freeze", "vaporize", "earth", "venus", "jupiter", "saturn", "pluto", "neptune", "monkey", "grain", "football", "lacrosse", "thing", "governor", "party", "lemonade", "scramble", "cliffs", "artillery", "puzzle", "machete", "freedom", "floored", "unknown"));
 	//Array Structure is the following.  Reorder types, Mutable Types.
@@ -378,38 +381,44 @@ public class Question {
 		int[] integerIndexAndLength = {index, length};
 		boolean continuous = true;
 		for(int i = 0; i < seq.length(); i++){ //For all characters in sequence
-			if((seq.charAt(i) > 47 && seq.charAt(index) < 58) && continuous){ //Is an integer
+			if((seq.charAt(i) > 47 && seq.charAt(i) < 58) && continuous){ //Is an integer
 				if(index == -1){
 					index = i;
 				}
 				length++;
+				System.out.println("hi");
 			}
 			else if(seq.charAt(i) == 32){
+				System.out.println("Space");
 				if(continuous){
 					integerIndexAndLength[0] = index;
 					integerIndexAndLength[1] = length;
 					return integerIndexAndLength;
 				}
 				else{
+					System.out.println("Space reset");
 					continuous = true;
 					length = 0;
 					index = -1;
 				}
 			}
 			else{
+				System.out.println("Else");
 				if(parseForLetter(seq.substring(i, i+1)) != -1){
+					System.out.println("letter found");
 					continuous = false;
 					index = -1;
 					length = 0;
 					integerIndexAndLength[0] = index;
 					integerIndexAndLength[1] = length;
 					if(seq.indexOf(" ") != -1){
-						i = seq.indexOf(" ") - 1;
+						i = seq.indexOf(" ");
 					}
 					else{ //terminate
 						return integerIndexAndLength;
 					}
 				}
+				continuous = false;
 			}
 		}
 		integerIndexAndLength[0] = index;
@@ -465,36 +474,152 @@ public class Question {
 		}
 	}
 	
-	public String getIncorrectAnswers(){
-		return null;
+	public String[] getIncorrectAnswers() throws IOException, InterruptedException{
+		String[] modifiedCodes = new String[3];
+		String mutableBody = codeBody;
+		for(int i = 0; i < 3; i++){
+			mutableBody = modifyCode(codeBody);
+			System.out.println("MUTABLE BODY:" + mutableBody);
+			modifiedCodes[i] = mutableBody;
+		}
+		String[] answers = new String[3];
+		for(int i = 0; i < 3; i++){
+			answers[i] = generateAnswer(modifiedCodes[i]);
+		}
+		return answers;
 	}
-	
-	public String getIncorrectAnswer(){
-		
-		return null;
+
+	public static void printArr(Object[] arr){
+		for(Object i: arr){
+			System.out.print(i +  " ");
+		}
 	}
 	
 	public String modifyCode(String code){
 		String[] conditionals = {"if", "else if", "while", "for"};
 		String[] arithmeticOperators = {"==", "!=", "<=", "<", ">=", ">"};
 		String[] logicalOperators = {"||", "&&"};
+		String comparisonOp = "";
+		//System.out.println("CODEN:\n" + code);
 		for(int i = 0; i < code.length(); i++){
 			for(int j = 0; j < conditionals.length; j++){
-				
+				if(i == code.indexOf(conditionals[j])){
+					String conditional = code.substring(code.indexOf("(", i) + 1, code.indexOf(")", i));
+					int[] numArray = new int[2];
+					//Which conditional is it? If it is while or for, change the value in the comparison.  Otherwise, change the comparison itself
+					if(conditionals[j].equals("if") || conditionals[j].equals("else if")){ //If or else if
+						boolean arithmeticOperation = false;
+						for(int k = 0; k < arithmeticOperators.length; k++){
+							if(conditional.indexOf(arithmeticOperators[k]) != -1){ //Operator found
+								arithmeticOperation = true;
+								int randNum = -1;
+								while((randNum = newNum(0, arithmeticOperators.length)) == k){randNum = newNum(0, arithmeticOperators.length);}
+								comparisonOp = arithmeticOperators[randNum];
+								String newOperator = arithmeticOperators[randNum];
+								conditional = conditional.replace(arithmeticOperators[k], newOperator);
+							}
+						}
+						if(!arithmeticOperation){
+							for(int l = 0 ; l < logicalOperators.length; l++){
+								if(conditional.indexOf(logicalOperators[l]) != -1){
+									int replacementIndex = 0;
+									if(l == 0){
+										replacementIndex = 1;
+									}
+									comparisonOp = logicalOperators[replacementIndex];
+									conditional = conditional.replace(logicalOperators[l], logicalOperators[replacementIndex]);
+								}
+							}
+						}
+						//Now change the value of the evaluation
+						String rightHandComp = conditional.substring(conditional.indexOf(comparisonOp), conditional.length());
+						numArray = changeNumber(rightHandComp, comparisonOp);
+					}
+					else{ //While or for
+					//Just change the value of the evaluation
+						boolean arithmeticOperation = false;
+						for(int k = 0; k < arithmeticOperators.length; k++){
+							if(conditional.indexOf(arithmeticOperators[k]) != -1){ //Operator found
+								System.out.println("Is an arithmetic operator");
+								comparisonOp = arithmeticOperators[k];
+								arithmeticOperation = true;
+							}
+						}
+						if(!arithmeticOperation){
+							for(int l = 0 ; l < logicalOperators.length; l++){
+								if(conditional.indexOf(logicalOperators[l]) != -1){
+									comparisonOp = arithmeticOperators[l];
+								}
+							}
+						}
+						String rightHandComp = "";
+						if(conditionals[j] == "for"){
+							rightHandComp = conditional.substring(conditional.indexOf(comparisonOp), conditional.indexOf(";", conditional.indexOf(comparisonOp)));
+						}
+						else{ //is a while
+							System.out.println("Is a while loop");
+							rightHandComp = conditional.substring(conditional.indexOf(comparisonOp), conditional.length());
+						}
+						numArray = changeNumber(rightHandComp, comparisonOp);
+						System.out.println("Substring:" + rightHandComp.substring(numArray[0], rightHandComp.length()));
+						numArray[0] = Integer.parseInt(rightHandComp.substring(numArray[0], rightHandComp.length()));
+					}
+
+					System.out.println("Old value:"+ numArray[0] + ", new value:" + numArray[1]);
+					conditional = conditional.replace(Integer.toString(numArray[0]), Integer.toString(numArray[1]));
+					String newCode = code.substring(0, code.indexOf("(", i) + 1) + conditional + code.substring(code.indexOf(")", i), code.length());
+					System.out.println("NEW CODE:\n" + newCode);
+					return newCode;
+				}
 			}
 		}
 		return null;
 	}
 	
-	public String generateAnswers(){
-		return null;
+	public int[] changeNumber(String rightHandComparison, String operator){
+		System.out.println("Right hand comparison:" + rightHandComparison);
+		int[] intData = parseForInteger(rightHandComparison);
+		System.out.println("int data[0]:" + intData[0]);
+		int[] returnStuff = new int[2];
+		returnStuff[0] = intData[0];
+		System.out.println("Number to be randomized:" + rightHandComparison.substring(intData[0], intData[0] + 1));
+		returnStuff[1] = newValWithinRange(Integer.parseInt(rightHandComparison.substring(intData[0], intData[0] + 1)), operator);	
+		System.out.println("NEW NUMBER IN CONDITIONAL:" + returnStuff[1]);
+		return returnStuff;	
 	}
 	
-	public Question generateNewQuestion(){
+	public String[] generateAnswers() throws IOException, InterruptedException{
+		String[] answers = new String[4];
+		answers[0] = generateAnswer(codeBody);
+		String[] incorrectAnswers = new String[3];
+		incorrectAnswers = getIncorrectAnswers();
+		for(int i = 1; i < 4; i++){
+			answers[i] = incorrectAnswers[i - 1];
+		}
+		return answers;
+	}
+	
+	public int newNumFromSign(int num, String sign){
+		int newNum = -1;
+		Random rand = new Random();
+		int numThatModifies = (int)rand.nextInt(6) + 1; 
+		if(sign.equals("<")){
+			newNum = num + numThatModifies;
+		}
+		else if(sign.equals(">")){
+			System.out.println(numThatModifies);
+			newNum = num - numThatModifies;
+			System.out.println("New num: " + newNum);
+		}
+		return newNum;
+	}
+	
+	public Question generateNewQuestion() throws IOException, InterruptedException{
 		QuestionType type = determineType();
 		if(type == QuestionType.TRACE){
 			//Approach 2
 			 String newQuestionCode = mutableRandomizer();
+			 String[] answers = generateAnswers();
 		}
 		else{ //Approach 1
 			
@@ -505,7 +630,6 @@ public class Question {
 	public int newValWithinRange(int val){
 		Random rand = new Random();
 		int sign = (int)(rand.nextInt(2));
-		System.out.println(sign);
 		int newVal = -1;
 		if(sign == 0){ //negative
 			System.out.println("Sign is negative");
@@ -516,6 +640,29 @@ public class Question {
 			newVal = (int)(val + (int)rand.nextInt(val + 1));
 		}
 		return newVal;
+	}
+	
+	
+	
+	public int newValWithinRange(int val, int range){
+		Random rand = new Random();
+		int sign = (int)(rand.nextInt(2));
+		System.out.println(sign);
+		int newVal = -1;
+		if(sign == 0){ //negative
+			System.out.println("Sign is negative");
+			newVal = (int)(val - (int)rand.nextInt(range));
+		}
+		else if(sign == 1){
+			System.out.println("Sign is positive");
+			newVal = (int)(val + (int)rand.nextInt(range));
+		}
+		return newVal;
+	}
+	
+	public int newNum(int lowerBound, int upperBound){
+		Random rand = new Random();
+		return (int)(rand.nextInt(upperBound - lowerBound) + lowerBound);
 	}
 	
 	public String generateQuestionText(){

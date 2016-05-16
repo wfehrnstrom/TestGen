@@ -1,12 +1,12 @@
 public class temp {
 	public static void main(String[] args){
-int b = 2219;
+int x = 4838;
 int result = 0;
 
-while(b > 0)
+while(x > -4)
 {
-result = result * 10;
-b *= 10;
+result = result * 10 + x % 10;
+x /= 10;
 }
 System.out.println(result);
 }
